@@ -1,0 +1,1920 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>For Ilhem — A Secret Garden</title>
+  <style>
+    :root {
+      --bg-deep: #05010c;
+      --bg-purple: #1e083d;
+      --violet: #b967ff;
+      --orchid: #e278ff;
+      --rose: #ff66a8;
+      --gold: #ffd97d;
+      --glass-bg: rgba(20, 7, 42, 0.72);
+      --glass-border: rgba(212, 148, 255, 0.28);
+      --text-soft: rgba(248, 238, 255, 0.92);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: radial-gradient(circle at 50% 42%, #260b4c 0%, #100424 55%, #04010a 100%);
+      color: var(--text-soft);
+      font-family: "Cascadia Code", "Fira Code", "JetBrains Mono", "Consolas", "Courier New", monospace;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    canvas#stage {
+      display: block;
+      width: 100%;
+      height: 100%;
+      cursor: crosshair;
+    }
+
+    .vignette {
+      pointer-events: none;
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at 50% 50%, transparent 50%, rgba(4, 1, 12, 0.72) 100%);
+    }
+
+    /* Opening Surprise Overlay */
+    .intro-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 30;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: radial-gradient(circle at 50% 46%, rgba(42, 14, 82, 0.72), rgba(7, 2, 18, 0.92));
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      transition: opacity 0.85s cubic-bezier(0.22, 1, 0.36, 1), transform 0.85s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .intro-overlay.hidden {
+      opacity: 0;
+      transform: scale(1.06);
+      pointer-events: none;
+    }
+
+    .gift-card {
+      max-width: 440px;
+      width: 100%;
+      padding: 36px 30px 32px;
+      border-radius: 26px;
+      text-align: center;
+      background: linear-gradient(165deg, rgba(44, 15, 84, 0.78), rgba(16, 6, 36, 0.88));
+      border: 1px solid rgba(220, 160, 255, 0.34);
+      box-shadow:
+        0 24px 70px rgba(0, 0, 0, 0.65),
+        0 0 60px rgba(185, 103, 255, 0.22),
+        inset 0 1px 0 rgba(255, 255, 255, 0.14);
+      animation: floatCard 4.5s ease-in-out infinite;
+    }
+
+    @keyframes floatCard {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-6px); }
+    }
+
+    .ascii-emblem {
+      font-size: 13px;
+      line-height: 1.35;
+      color: #e8b3ff;
+      text-shadow: 0 0 14px rgba(215, 130, 255, 0.7);
+      margin-bottom: 18px;
+      white-space: pre;
+    }
+
+    .gift-tag {
+      font-size: 11px;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: rgba(255, 194, 228, 0.72);
+      margin-bottom: 8px;
+    }
+
+    .gift-title {
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 34px;
+      font-weight: 400;
+      letter-spacing: 0.04em;
+      background: linear-gradient(120deg, #f3d5ff 0%, #d896ff 45%, #ff85c0 85%, #ffe3a3 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      margin-bottom: 12px;
+    }
+
+    .gift-sub {
+      font-size: 13px;
+      line-height: 1.65;
+      color: rgba(236, 218, 255, 0.78);
+      margin-bottom: 26px;
+    }
+
+    .btn-open {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 13px 30px;
+      border-radius: 999px;
+      border: 1px solid rgba(240, 185, 255, 0.65);
+      background: linear-gradient(135deg, rgba(168, 72, 255, 0.55), rgba(255, 92, 168, 0.45));
+      color: #ffffff;
+      font-family: inherit;
+      font-size: 13.5px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      box-shadow: 0 0 28px rgba(195, 100, 255, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+      transition: transform 0.22s ease, box-shadow 0.22s ease, background 0.22s ease;
+    }
+
+    .btn-open:hover {
+      transform: translateY(-2px) scale(1.03);
+      box-shadow: 0 0 40px rgba(220, 120, 255, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+      background: linear-gradient(135deg, rgba(185, 92, 255, 0.72), rgba(255, 105, 178, 0.6));
+    }
+
+    .btn-open:active {
+      transform: scale(0.98);
+    }
+
+    .intro-hint {
+      margin-top: 14px;
+      font-size: 11px;
+      color: rgba(220, 195, 255, 0.5);
+    }
+
+    /* Love Note Modal */
+    .note-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 22px;
+      background: rgba(8, 2, 20, 0.72);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.35s ease;
+    }
+
+    .note-modal.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .note-card {
+      max-width: 480px;
+      width: 100%;
+      padding: 32px 28px 26px;
+      border-radius: 22px;
+      background: linear-gradient(160deg, rgba(38, 12, 72, 0.92), rgba(17, 5, 36, 0.95));
+      border: 1px solid rgba(225, 165, 255, 0.38);
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.72), 0 0 44px rgba(185, 103, 255, 0.25);
+      transform: translateY(12px);
+      transition: transform 0.35s ease;
+    }
+
+    .note-modal.open .note-card {
+      transform: translateY(0);
+    }
+
+    .note-heading {
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 24px;
+      color: #f4d6ff;
+      margin-bottom: 14px;
+      text-align: center;
+    }
+
+    .note-body {
+      font-size: 13.5px;
+      line-height: 1.75;
+      color: rgba(246, 234, 255, 0.9);
+      white-space: pre-line;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .note-sign {
+      text-align: center;
+      font-size: 13px;
+      color: #ff9ed2;
+      margin-bottom: 20px;
+    }
+
+    .note-close {
+      display: block;
+      margin: 0 auto;
+      padding: 8px 22px;
+      border-radius: 999px;
+      border: 1px solid rgba(220, 165, 255, 0.35);
+      background: rgba(185, 103, 255, 0.2);
+      color: #fff;
+      font-family: inherit;
+      font-size: 12px;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    .note-close:hover {
+      background: rgba(185, 103, 255, 0.38);
+    }
+
+    /* Top Label */
+    .dedication {
+      pointer-events: none;
+      position: fixed;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 12px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: rgba(232, 198, 255, 0.64);
+      text-shadow: 0 0 14px rgba(185, 103, 255, 0.5);
+      z-index: 10;
+      white-space: nowrap;
+      transition: opacity 0.5s ease;
+    }
+
+    /* Bottom Translucent Controls */
+    .hud {
+      position: fixed;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 14px;
+      border-radius: 999px;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 8px 32px rgba(15, 2, 35, 0.65), 0 0 24px rgba(175, 90, 255, 0.16);
+      z-index: 10;
+      transition: opacity 0.4s ease;
+    }
+
+    .hud.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .hud button {
+      background: transparent;
+      border: 1px solid rgba(205, 145, 255, 0.28);
+      color: var(--text-soft);
+      font-family: inherit;
+      font-size: 11.5px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      letter-spacing: 0.03em;
+      white-space: nowrap;
+    }
+
+    .hud button:hover {
+      background: rgba(185, 103, 255, 0.24);
+      border-color: rgba(224, 150, 255, 0.68);
+      color: #ffffff;
+    }
+
+    .hud button.active {
+      background: rgba(185, 103, 255, 0.36);
+      border-color: rgba(235, 175, 255, 0.85);
+      color: #fff;
+    }
+
+    .hud button.pulse-note {
+      border-color: rgba(255, 130, 195, 0.7);
+      box-shadow: 0 0 14px rgba(255, 110, 190, 0.4);
+      color: #ffd9ec;
+    }
+
+    .stage-pills {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 0 3px;
+    }
+
+    .stage-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      color: rgba(236, 215, 255, 0.56);
+      cursor: pointer;
+      padding: 3px 7px;
+      border-radius: 999px;
+      transition: color 0.25s ease, background 0.25s ease;
+      white-space: nowrap;
+    }
+
+    .stage-pill .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgba(210, 170, 255, 0.34);
+      transition: transform 0.25s ease, background 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .stage-pill.current {
+      color: #fff8ff;
+      background: rgba(185, 103, 255, 0.18);
+    }
+
+    .stage-pill.current .dot {
+      background: var(--orchid);
+      box-shadow: 0 0 10px var(--orchid);
+      transform: scale(1.3);
+    }
+
+    @media (max-width: 720px) {
+      .hud {
+        bottom: 12px;
+        gap: 5px;
+        padding: 6px 10px;
+      }
+      .stage-pill span.label {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="dedication" id="topLabel">a gift for ilhem</div>
+  <canvas id="stage"></canvas>
+  <div class="vignette"></div>
+
+  <!-- Surprise Opening Screen -->
+  <div class="intro-overlay" id="introOverlay">
+    <div class="gift-card">
+      <div class="ascii-emblem">    *  .   _   .  *
+  .   .' * ' .   .
+     (   <3   )
+      '.    .'
+        '\/'</div>
+      <div class="gift-tag">made specially for you</div>
+      <h1 class="gift-title">For Ilhem</h1>
+      <p class="gift-sub">
+        Inside the letters of your name hides a little purple garden,
+        blooming flowers, and a few sleepy kitties waiting to say hello.
+      </p>
+      <button class="btn-open" id="btnOpenGift" type="button">
+        <span>*</span>
+        <span>Open Your Gift</span>
+        <span>*</span>
+      </button>
+      <div class="intro-hint">best experienced with sound on · tap cats &amp; flowers later</div>
+    </div>
+  </div>
+
+  <!-- Love Note Modal -->
+  <div class="note-modal" id="noteModal" aria-hidden="true">
+    <div class="note-card">
+      <div class="note-heading" id="noteTitle">For Dearest Ilhem</div>
+      <div class="note-body" id="noteBody"></div>
+      <div class="note-sign" id="noteSign"></div>
+      <button class="note-close" id="btnCloseNote" type="button">Back to the Garden</button>
+    </div>
+  </div>
+
+  <!-- Bottom HUD Controls -->
+  <div class="hud hidden" id="hud" aria-label="Animation Controls">
+    <button id="btnPlayPause" type="button">Pause</button>
+    <button id="btnReplay" type="button">Replay</button>
+    <button id="btnSound" type="button" class="active">Sound: On</button>
+    <div class="stage-pills">
+      <div class="stage-pill current" data-time="0.5" title="Jump to Name">
+        <span class="dot"></span><span class="label">ilhem</span>
+      </div>
+      <div class="stage-pill" data-time="5.5" title="Jump to Leaf Zoom">
+        <span class="dot"></span><span class="label">leaf</span>
+      </div>
+      <div class="stage-pill" data-time="10.4" title="Jump to Bloom">
+        <span class="dot"></span><span class="label">bloom</span>
+      </div>
+      <div class="stage-pill" data-time="16.8" title="Jump to Bouquet &amp; Kitties">
+        <span class="dot"></span><span class="label">garden</span>
+      </div>
+    </div>
+    <button id="btnNote" type="button">Note &lt;3</button>
+  </div>
+
+  <script>
+    (() => {
+      // =========================================================================
+      // PERSONALIZE YOUR GIFT HERE
+      // =========================================================================
+      const GIFT_CONFIG = {
+        recipientName: "Ilhem",
+        finaleTitle: "~  *  For Ilhem  *  ~",
+        finaleSubtitle: "every letter of your name grows a garden of purple blooms & happy kitties",
+        noteHeading: "To My Dearest Ilhem",
+        noteBody:
+          "Just like this little world hidden inside your name,\n" +
+          "you turn ordinary moments into something bright, colorful, and alive.\n\n" +
+          "Here is a bouquet of purple flowers that never fades\n" +
+          "and a cozy crowd of kitties—just to bring a huge smile to your face today.",
+        noteSignature: "With all my love  <3"
+      };
+
+      // Populate modal text from config
+      document.getElementById("noteTitle").textContent = GIFT_CONFIG.noteHeading;
+      document.getElementById("noteBody").textContent = GIFT_CONFIG.noteBody;
+      document.getElementById("noteSign").textContent = GIFT_CONFIG.noteSignature;
+
+      // DOM References
+      const canvas = document.getElementById("stage");
+      const ctx = canvas.getContext("2d");
+      const introOverlay = document.getElementById("introOverlay");
+      const btnOpenGift = document.getElementById("btnOpenGift");
+      const hud = document.getElementById("hud");
+      const btnPlayPause = document.getElementById("btnPlayPause");
+      const btnReplay = document.getElementById("btnReplay");
+      const btnSound = document.getElementById("btnSound");
+      const btnNote = document.getElementById("btnNote");
+      const noteModal = document.getElementById("noteModal");
+      const btnCloseNote = document.getElementById("btnCloseNote");
+      const stagePills = Array.from(document.querySelectorAll(".stage-pill"));
+      const topLabel = document.getElementById("topLabel");
+
+      // =========================================================================
+      // 1. GENTLE MUSIC-BOX WEB AUDIO ENGINE (NO EXTERNAL AUDIO FILES NEEDED)
+      // =========================================================================
+      let audioCtx = null;
+      let soundEnabled = true;
+
+      function ensureAudio() {
+        if (!soundEnabled) return null;
+        if (!audioCtx) {
+          const AC = window.AudioContext || window.webkitAudioContext;
+          if (AC) audioCtx = new AC();
+        }
+        if (audioCtx && audioCtx.state === "suspended") {
+          audioCtx.resume().catch(() => {});
+        }
+        return audioCtx;
+      }
+
+      function playChime(freq, duration = 1.6, volume = 0.045, delay = 0) {
+        if (!soundEnabled) return;
+        const ac = ensureAudio();
+        if (!ac) return;
+        const now = ac.currentTime + delay;
+
+        const osc = ac.createOscillator();
+        const osc2 = ac.createOscillator();
+        const filter = ac.createBiquadFilter();
+        const gain = ac.createGain();
+
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(freq, now);
+
+        osc2.type = "triangle";
+        osc2.frequency.setValueAtTime(freq * 2, now); // soft bell overtone
+
+        const overtoneGain = ac.createGain();
+        overtoneGain.gain.setValueAtTime(0.14, now);
+
+        filter.type = "lowpass";
+        filter.frequency.setValueAtTime(2100, now);
+
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.linearRampToValueAtTime(volume, now + 0.025);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+        osc.connect(filter);
+        osc2.connect(overtoneGain);
+        overtoneGain.connect(filter);
+        filter.connect(gain);
+        gain.connect(ac.destination);
+
+        osc.start(now);
+        osc2.start(now);
+        osc.stop(now + duration + 0.05);
+        osc2.stop(now + duration + 0.05);
+      }
+
+      // Romantic Fmaj9 / Dm9 music-box cues triggered by timeline milestones
+      const MELODY_CUES = [
+        { t: 0.3, notes: [523.25, 659.25, 783.99, 987.77] }, // Name appear shimmer
+        { t: 2.2, notes: [587.33, 698.46, 880.0, 1046.5] }, // Name complete sparkle
+        { t: 4.1, notes: [659.25, 783.99, 987.77, 1174.66] }, // Zoom into 'h'
+        { t: 5.5, notes: [523.25, 659.25, 880.0, 1046.5] }, // Leaf unfurl
+        { t: 8.5, notes: [440.0, 523.25, 659.25, 783.99] }, // Vase weaves
+        { t: 10.6, notes: [587.33, 783.99, 987.77, 1174.66] }, // Hero peony bloom
+        { t: 12.2, notes: [659.25, 880.0, 1046.5, 1318.51] }, // Bouquet swell
+        { t: 15.6, notes: [523.25, 659.25, 783.99, 1046.5, 1318.51] } // Finale chord
+      ];
+      let firedCues = new Set();
+
+      function checkAudioCues(t) {
+        if (!soundEnabled || !started) return;
+        for (let i = 0; i < MELODY_CUES.length; i++) {
+          const cue = MELODY_CUES[i];
+          if (!firedCues.has(i) && t >= cue.t && t < cue.t + 0.35) {
+            firedCues.add(i);
+            cue.notes.forEach((f, idx) => playChime(f, 1.8, 0.036, idx * 0.14));
+          }
+        }
+      }
+
+      btnSound.addEventListener("click", () => {
+        soundEnabled = !soundEnabled;
+        btnSound.textContent = soundEnabled ? "Sound: On" : "Sound: Off";
+        btnSound.classList.toggle("active", soundEnabled);
+        if (soundEnabled) {
+          ensureAudio();
+          playChime(783.99, 1.0, 0.04, 0);
+        }
+      });
+
+      // =========================================================================
+      // 2. EASING & COLOR HELPERS
+      // =========================================================================
+      const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+      const lerp = (a, b, t) => a + (b - a) * t;
+      const smoothstep = (e0, e1, x) => {
+        const t = clamp((x - e0) / (e1 - e0));
+        return t * t * (3 - 2 * t);
+      };
+      const easeInOutCubic = (t) =>
+        t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+      const easeInOutQuart = (t) =>
+        t < 0.5 ? 8 * t * t * t * t : 1 - Math.pow(-2 * t + 2, 4) / 2;
+      const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
+      const easeOutBack = (t) => {
+        const c1 = 1.70158;
+        const c3 = c1 + 1;
+        return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
+      };
+
+      function hsl(h, s, l, a = 1) {
+        return `hsla(${((h % 360) + 360) % 360}, ${s}%, ${l}%, ${a})`;
+      }
+
+      // =========================================================================
+      // 3. CRYSTAL-CLEAR "ILHEM" ASCII ART + WORLD METRICS
+      // =========================================================================
+      const NAME_CELL_W = 11.4;
+      const NAME_CELL_H = 19.2;
+
+      const ILHEM_ART = [
+        ".---.   .--.   .--.                                                     ",
+        "( * )   |  |   |  |                                                     ",
+        " `-'    |  |   |  |                                                     ",
+        ".---.   |  |   |  | .------.      .-------.    .--. .-----. .-----.     ",
+        "|   |   |  |   |  |'  ____  \\    /   ___   \\   |   \\' ___ \\'  ___  \\    ",
+        "|   |   |  |   |  |  /    \\  \\  |   (___)   |  |  |  /   \\ V /   \\  \\   ",
+        "|   |   |  |   |  | /      |  | |   _______/   |  | /   |  |     |  |   ",
+        "|   |   |  |   |  |        |  | |  |           |  |     |  |     |  |   ",
+        "|   |   |  |   |  |        |  |  \\  \\______.   |  |     |  |     |  |   ",
+        "`---'   `--'   `--'        `--'   `--------'   `--'     `--'     `--'   "
+      ];
+
+      const NAME_ROWS = ILHEM_ART.length;
+      const NAME_COLS = Math.max(...ILHEM_ART.map((l) => l.length));
+      const NAME_CX = (NAME_COLS - 1) / 2;
+      const NAME_CY = (NAME_ROWS - 1) / 2;
+
+      // Exact center of 'h' arch
+      const ARCH_X = (22.5 - NAME_CX) * NAME_CELL_W;
+      const ARCH_Y = (7.4 - NAME_CY) * NAME_CELL_H;
+
+      const BQ_CELL_W = 1.45;
+      const BQ_CELL_H = 2.25;
+
+      // =========================================================================
+      // 4. ACT I: "ILHEM" CELLS & ORBITING PURPLE STARLIGHT
+      // =========================================================================
+      const nameGlyphs = [];
+      for (let r = 0; r < NAME_ROWS; r++) {
+        const line = ILHEM_ART[r];
+        for (let c = 0; c < line.length; c++) {
+          const ch = line[c];
+          if (ch === " ") continue;
+          const wx = (c - NAME_CX) * NAME_CELL_W;
+          const wy = (r - NAME_CY) * NAME_CELL_H;
+          const isStarDot = r === 1 && c === 2;
+          const progressX = c / NAME_COLS;
+          nameGlyphs.push({
+            r,
+            c,
+            ch,
+            wx,
+            wy,
+            isStarDot,
+            progressX,
+            driftAngle: Math.atan2(wy - ARCH_Y, wx - ARCH_X),
+            seed: Math.sin(r * 19.1 + c * 37.3) * 0.5 + 0.5
+          });
+        }
+      }
+
+      const nameOrbiters = Array.from({ length: 68 }, (_, i) => ({
+        angle: (i / 68) * Math.PI * 2,
+        rx: 435 + ((i * 29) % 130),
+        ry: 138 + ((i * 23) % 68),
+        speed: (i % 2 === 0 ? 1 : -1) * (0.14 + (i % 5) * 0.045),
+        ch: ["*", "+", ".", "~", "o", "'"][i % 6],
+        hue: [275, 290, 315, 260, 338, 46][i % 6],
+        phase: i * 0.9
+      }));
+
+      // =========================================================================
+      // 5. ACT II: ZOOM VORTEX + BOTANICAL LEAF
+      // =========================================================================
+      const zoomVortexParticles = Array.from({ length: 76 }, (_, i) => ({
+        angle: (i / 76) * Math.PI * 2 + (i % 4) * 0.2,
+        radius: 0.12 + ((i * 0.17) % 0.88),
+        speed: 0.72 + (i % 5) * 0.25,
+        ch: ["*", "~", "+", ".", "o", "/"][i % 6],
+        hue: [278, 295, 318, 262, 150, 48][i % 6]
+      }));
+
+      const HERO_LEAF_ART = [
+        "        /|        ",
+        "       / |        ",
+        "     .'  | '.     ",
+        "    / \\  | / \\    ",
+        "   / . \\.|/ . \\   ",
+        "  ;  \\   |   / ;  ",
+        " ; .  \\  |  / . ; ",
+        " |  \\  \\ | / /  | ",
+        " ;   \\  \\|/ /   ; ",
+        "  ;   \\  | /   ;  ",
+        "   \\   \\ |/   /   ",
+        "    '.  \\|  .'    ",
+        "      '._|_.'     "
+      ];
+
+      const heroLeafCells = [];
+      {
+        const rows = HERO_LEAF_ART.length;
+        const cols = HERO_LEAF_ART[0].length;
+        const cx = (cols - 1) / 2;
+        const cy = (rows - 1) / 2;
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            const ch = HERO_LEAF_ART[r][c];
+            if (ch === " ") continue;
+            const dx = c - cx;
+            const dy = r - cy;
+            const isVein = Math.abs(dx) < 1.1 || ((ch === "\\" || ch === "/") && Math.abs(dx) < 3.5);
+            const isDew = r === 4 && c === 12;
+            const distFromCenter = Math.hypot(dx / 8, dy / 6);
+            heroLeafCells.push({
+              dx,
+              dy,
+              ch,
+              isVein,
+              isDew,
+              distFromCenter,
+              revealAt: clamp((1 - r / rows) * 0.45 + (Math.abs(dx) / 14) * 0.55, 0, 1)
+            });
+          }
+        }
+      }
+
+      // =========================================================================
+      // 6. ACT III & IV: RIBBON-TIED CRYSTAL VASE, STEMS & 18 PURPLE BLOOMS
+      // =========================================================================
+      const VASE_ART = [
+        "    .================.    ",
+        "   (~~~~~~~~~~~~~~~~~~)   ",
+        "    \\  .-.  ()  .-.  /    ",
+        "     ) '._.-''-._.' (     ",
+        "    /  .::::::::::.  \\    ",
+        "   /  :~~~::~~::~~~:  \\   ",
+        "  |  |    | || |    |  |  ",
+        "  |  |    \\ || /    |  |  ",
+        "  |   \\    \\||/    /   |  ",
+        "   \\   \\    ||    /   /   ",
+        "    \\   `---||---'   /    ",
+        "     '._____||_____.'     ",
+        "      (____________)      "
+      ];
+
+      const VASE_TOP_Y = 9;
+      const vaseCells = [];
+      {
+        const rows = VASE_ART.length;
+        const cols = VASE_ART[0].length;
+        const cx = (cols - 1) / 2;
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            const ch = VASE_ART[r][c];
+            if (ch === " ") continue;
+            const bqX = c - cx;
+            const bqY = VASE_TOP_Y + r;
+            const isRim = r === 0;
+            const isWater = ch === "~";
+            const isRibbon = (r === 2 || r === 3) && Math.abs(bqX) <= 7.5;
+            const isHighlight = !isRibbon && c < 7 && (ch === "(" || ch === "/" || ch === "|" || ch === "\\");
+            const isInnerStem =
+              r >= 6 && r <= 11 && Math.abs(bqX) <= 3 && (ch === "|" || ch === "\\" || ch === "/");
+            const isShimmer = ch === ":" || ch === ".";
+            vaseCells.push({
+              bqX,
+              bqY,
+              ch,
+              isRim,
+              isWater,
+              isRibbon,
+              isHighlight,
+              isInnerStem,
+              isShimmer,
+              rowNorm: r / (rows - 1),
+              colNorm: c / (cols - 1)
+            });
+          }
+        }
+      }
+
+      const FLOWER_TEMPLATES = {
+        royalPeony: {
+          art: [
+            "    _..---.._    ",
+            "  .' / .-. \\ '.  ",
+            " /  ( ( @ ) )  \\ ",
+            "|  ( \\ `-' / )  |",
+            " \\  '. ___ .'  / ",
+            "  '.  `---'  .'  ",
+            "    `--...--'    "
+          ],
+          colorFn: (ch, dx, dy, dist) => {
+            if (ch === "@" || (ch === "`" && Math.abs(dx) < 2)) {
+              return { h: 48, s: 100, l: 78 };
+            }
+            if (dist < 0.45) return { h: 300, s: 95, l: 76 };
+            if (dist < 0.78) return { h: 282, s: 90, l: 66 };
+            return { h: 268, s: 88, l: 55 };
+          }
+        },
+        lavenderTulip: {
+          art: [
+            "  /\\ /\\ /\\  ",
+            " /  V  V  \\ ",
+            "|  ( ** )  |",
+            " \\  \\  /  / ",
+            "  '. \\/ .'  ",
+            "    `--'    "
+          ],
+          colorFn: (ch, dx, dy) => {
+            if (ch === "*") return { h: 52, s: 100, l: 78 };
+            if (dy < 0) return { h: 276, s: 94, l: 82 };
+            if (dy < 1.2) return { h: 270, s: 88, l: 67 };
+            return { h: 262, s: 84, l: 55 };
+          }
+        },
+        amethystStar: {
+          art: [
+            "   \\  |  /   ",
+            " '. \\ | / .' ",
+            "-- ( (@) ) --",
+            " .' / | \\ '. ",
+            "   /  |  \\   "
+          ],
+          colorFn: (ch, dx, dy, dist) => {
+            if (ch === "@") return { h: 48, s: 100, l: 78 };
+            if (dist < 0.5) return { h: 294, s: 96, l: 76 };
+            return { h: 274, s: 92, l: 70 };
+          }
+        },
+        sunburst: {
+          art: [
+            "   \\  |  /   ",
+            " '. \\ | / .' ",
+            "-- ( (@) ) --",
+            " .' / | \\ '. ",
+            "   /  |  \\   "
+          ],
+          colorFn: (ch, dx, dy, dist) => {
+            if (ch === "@") return { h: 318, s: 92, l: 65 };
+            if (dist < 0.5) return { h: 46, s: 100, l: 70 };
+            return { h: 50, s: 98, l: 76 };
+          }
+        },
+        orchid: {
+          art: [
+            "  .---.  ",
+            " ( \\*/ ) ",
+            "( * @ * )",
+            " ( / \\ ) ",
+            "  `---'  "
+          ],
+          colorFn: (ch) => {
+            if (ch === "@") return { h: 48, s: 100, l: 78 };
+            if (ch === "*") return { h: 296, s: 100, l: 84 };
+            return { h: 286, s: 92, l: 68 };
+          }
+        },
+        rosePink: {
+          art: [
+            "  .---.  ",
+            " ( \\*/ ) ",
+            "( * @ * )",
+            " ( / \\ ) ",
+            "  `---'  "
+          ],
+          colorFn: (ch) => {
+            if (ch === "@") return { h: 48, s: 100, l: 78 };
+            if (ch === "*") return { h: 325, s: 100, l: 84 };
+            return { h: 332, s: 94, l: 68 };
+          }
+        },
+        periwinkle: {
+          art: [
+            "  .---.  ",
+            " ( \\*/ ) ",
+            "( * @ * )",
+            " ( / \\ ) ",
+            "  `---'  "
+          ],
+          colorFn: (ch) => {
+            if (ch === "@") return { h: 52, s: 100, l: 78 };
+            if (ch === "*") return { h: 245, s: 98, l: 84 };
+            return { h: 252, s: 90, l: 72 };
+          }
+        },
+        lilacSpray: {
+          art: [
+            " .*. ",
+            "*(o)*",
+            " '*' "
+          ],
+          colorFn: (ch) => {
+            if (ch === "o") return { h: 48, s: 96, l: 86 };
+            return { h: 282, s: 88, l: 86 };
+          }
+        }
+      };
+
+      const FLOWERS = [
+        { type: "royalPeony", sx: 0, sy: VASE_TOP_Y + 2, cx: 0.4, cy: -4, tx: 0, ty: -16, stemStart: 8.6, stemDur: 2.1, bloomStart: 10.5, bloomDur: 1.8, isCenterHero: true, swayAmp: 0.55, swayPhase: 0.0 },
+        { type: "amethystStar", sx: -1.5, sy: VASE_TOP_Y + 2, cx: -8, cy: -2, tx: -16, ty: -15, stemStart: 8.9, stemDur: 2.0, bloomStart: 11.0, bloomDur: 1.5, sideLeaf: { t: 0.58, dir: -1 }, swayAmp: 0.85, swayPhase: 1.1 },
+        { type: "lavenderTulip", sx: 1.5, sy: VASE_TOP_Y + 2, cx: 8, cy: -3, tx: 16, ty: -15, stemStart: 9.0, stemDur: 2.0, bloomStart: 11.2, bloomDur: 1.5, sideLeaf: { t: 0.56, dir: 1 }, swayAmp: 0.85, swayPhase: 2.2 },
+        { type: "lavenderTulip", sx: -1, sy: VASE_TOP_Y + 2, cx: -5, cy: -8, tx: -9, ty: -23.5, stemStart: 9.2, stemDur: 2.1, bloomStart: 11.6, bloomDur: 1.4, swayAmp: 1.0, swayPhase: 0.7 },
+        { type: "sunburst", sx: 1, sy: VASE_TOP_Y + 2, cx: 5, cy: -8, tx: 9.5, ty: -23.5, stemStart: 9.3, stemDur: 2.1, bloomStart: 11.8, bloomDur: 1.4, swayAmp: 1.0, swayPhase: 3.1 },
+        { type: "orchid", sx: -2.2, sy: VASE_TOP_Y + 2, cx: -14, cy: 2, tx: -23, ty: -6.5, stemStart: 9.5, stemDur: 1.9, bloomStart: 12.1, bloomDur: 1.3, sideLeaf: { t: 0.48, dir: -1 }, swayAmp: 1.05, swayPhase: 4.0 },
+        { type: "periwinkle", sx: 2.2, sy: VASE_TOP_Y + 2, cx: 14, cy: 2, tx: 23, ty: -6.5, stemStart: 9.6, stemDur: 1.9, bloomStart: 12.3, bloomDur: 1.3, sideLeaf: { t: 0.48, dir: 1 }, swayAmp: 1.05, swayPhase: 1.9 },
+        { type: "periwinkle", sx: -2.5, sy: VASE_TOP_Y + 2, cx: -12, cy: 6, tx: -18, ty: 3, stemStart: 9.8, stemDur: 1.7, bloomStart: 12.7, bloomDur: 1.2, swayAmp: 0.75, swayPhase: 2.7 },
+        { type: "rosePink", sx: 2.5, sy: VASE_TOP_Y + 2, cx: 12, cy: 6, tx: 18, ty: 3, stemStart: 9.9, stemDur: 1.7, bloomStart: 12.9, bloomDur: 1.2, swayAmp: 0.75, swayPhase: 4.8 },
+        { type: "rosePink", sx: -0.8, sy: VASE_TOP_Y + 2, cx: -7, cy: 1, tx: -10.5, ty: -6.5, stemStart: 10.0, stemDur: 1.8, bloomStart: 13.1, bloomDur: 1.2, swayAmp: 0.65, swayPhase: 3.4 },
+        { type: "orchid", sx: 0.8, sy: VASE_TOP_Y + 2, cx: 7, cy: 1, tx: 10.5, ty: -6.5, stemStart: 10.1, stemDur: 1.8, bloomStart: 13.3, bloomDur: 1.2, swayAmp: 0.65, swayPhase: 5.1 },
+        { type: "amethystStar", sx: 0, sy: VASE_TOP_Y + 2, cx: 0.5, cy: -14, tx: 0.2, ty: -27, stemStart: 10.2, stemDur: 2.1, bloomStart: 13.5, bloomDur: 1.3, swayAmp: 1.15, swayPhase: 1.4 },
+        { type: "lilacSpray", sx: -1.8, sy: VASE_TOP_Y + 2, cx: -14, cy: -5, tx: -24, ty: -15.5, stemStart: 10.4, stemDur: 1.9, bloomStart: 13.7, bloomDur: 1.0, swayAmp: 1.2, swayPhase: 2.5 },
+        { type: "lilacSpray", sx: 1.8, sy: VASE_TOP_Y + 2, cx: 14, cy: -5, tx: 24, ty: -15.5, stemStart: 10.5, stemDur: 1.9, bloomStart: 13.9, bloomDur: 1.0, swayAmp: 1.2, swayPhase: 4.3 },
+        { type: "lilacSpray", sx: -0.6, sy: VASE_TOP_Y + 2, cx: -5, cy: -10, tx: -16, ty: -23, stemStart: 10.6, stemDur: 1.9, bloomStart: 14.1, bloomDur: 1.0, swayAmp: 1.15, swayPhase: 0.3 },
+        { type: "lilacSpray", sx: 0.6, sy: VASE_TOP_Y + 2, cx: 5, cy: -10, tx: 16, ty: -23, stemStart: 10.7, stemDur: 1.9, bloomStart: 14.2, bloomDur: 1.0, swayAmp: 1.15, swayPhase: 3.6 },
+        { type: "lilacSpray", sx: 0.5, sy: VASE_TOP_Y + 2, cx: 6, cy: -1, tx: 11, ty: 4.5, stemStart: 10.8, stemDur: 1.6, bloomStart: 14.4, bloomDur: 1.0, swayAmp: 0.8, swayPhase: 1.6 },
+        { type: "lilacSpray", sx: -0.5, sy: VASE_TOP_Y + 2, cx: -6, cy: -1, tx: -11, ty: 4.5, stemStart: 10.9, stemDur: 1.6, bloomStart: 14.5, bloomDur: 1.0, swayAmp: 0.8, swayPhase: 3.8 }
+      ];
+
+      function quadBezier(p0, p1, p2, t) {
+        const u = 1 - t;
+        return {
+          x: u * u * p0.x + 2 * u * t * p1.x + t * t * p2.x,
+          y: u * u * p0.y + 2 * u * t * p1.y + t * t * p2.y
+        };
+      }
+
+      function quadTangent(p0, p1, p2, t) {
+        return {
+          x: 2 * (1 - t) * (p1.x - p0.x) + 2 * t * (p2.x - p1.x),
+          y: 2 * (1 - t) * (p1.y - p0.y) + 2 * t * (p2.y - p1.y)
+        };
+      }
+
+      const SMALL_LEAF_LEFT = [" .-'/", "(__/ "];
+      const SMALL_LEAF_RIGHT = ["\\`-. ", " \\__)"];
+
+      for (const fl of FLOWERS) {
+        const p0 = { x: fl.sx, y: fl.sy };
+        const p1 = { x: fl.cx, y: fl.cy };
+        const p2 = { x: fl.tx, y: fl.ty };
+
+        const stemMap = new Map();
+        const steps = 65;
+        for (let i = 0; i <= steps; i++) {
+          const t = i / steps;
+          const pt = quadBezier(p0, p1, p2, t);
+          const tan = quadTangent(p0, p1, p2, t);
+          const gx = Math.round(pt.x);
+          const gy = Math.round(pt.y);
+          if (fl.isCenterHero && Math.abs(gx) <= 3 && gy >= -5 && gy <= 5) continue;
+          const key = `${gx},${gy}`;
+          if (!stemMap.has(key)) {
+            let ch = "|";
+            if (tan.y < 0) {
+              if (tan.x > Math.abs(tan.y) * 0.38) ch = "/";
+              else if (tan.x < -Math.abs(tan.y) * 0.38) ch = "\\";
+            }
+            stemMap.set(key, {
+              gx,
+              gy,
+              t,
+              ch,
+              hue: lerp(142, 160, t),
+              light: lerp(42, 58, t)
+            });
+          }
+        }
+        fl.stemCells = Array.from(stemMap.values());
+
+        fl.leafCells = [];
+        if (fl.sideLeaf) {
+          const pt = quadBezier(p0, p1, p2, fl.sideLeaf.t);
+          const art = fl.sideLeaf.dir < 0 ? SMALL_LEAF_LEFT : SMALL_LEAF_RIGHT;
+          for (let r = 0; r < art.length; r++) {
+            for (let c = 0; c < art[r].length; c++) {
+              const ch = art[r][c];
+              if (ch === " ") continue;
+              const ox = fl.sideLeaf.dir < 0 ? c - art[r].length : c + 1;
+              fl.leafCells.push({
+                gx: Math.round(pt.x) + ox,
+                gy: Math.round(pt.y) + r - 1,
+                ch,
+                t: fl.sideLeaf.t,
+                hue: 145 + c * 3,
+                light: 54 + (r === 0 ? 10 : 0)
+              });
+            }
+          }
+        }
+
+        const tpl = FLOWER_TEMPLATES[fl.type];
+        const rows = tpl.art.length;
+        const cols = tpl.art[0].length;
+        const cx = (cols - 1) / 2;
+        const cy = (rows - 1) / 2;
+        const maxR = Math.hypot(cx, cy) || 1;
+        fl.blossomCells = [];
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            const ch = tpl.art[r][c];
+            if (ch === " ") continue;
+            const dx = c - cx;
+            const dy = r - cy;
+            const dist = Math.hypot(dx / (cx || 1), dy / (cy || 1));
+            const col = tpl.colorFn(ch, dx, dy, Math.min(1, dist));
+            fl.blossomCells.push({
+              dx,
+              dy,
+              ch,
+              dist: clamp(Math.hypot(dx, dy) / maxR, 0, 1),
+              h: col.h,
+              s: col.s,
+              l: col.l
+            });
+          }
+        }
+      }
+
+      // =========================================================================
+      // 7. ANIMATED CATS (WITH PET-TO-PURR INTERACTION!) & BUTTERFLIES
+      // =========================================================================
+      const CAT_TEMPLATES = {
+        sittingLeft: {
+          rows: [
+            "  /\\_/\\  ",
+            " ( o.o ) ",
+            "  > ^ <  ",
+            " /  *  \\ ",
+            "(|     |)",
+            " `--\"--' "
+          ],
+          eyeRow: 1,
+          eyeCols: [3, 5],
+          tailAnchor: { dx: -4.5, dy: 2.0, dir: -1 }
+        },
+        sittingRight: {
+          rows: [
+            "  /\\_/\\  ",
+            " ( ^.^ ) ",
+            " /  ~  \\ ",
+            "(|     |)",
+            " `-u-u-' "
+          ],
+          eyeRow: 1,
+          eyeCols: [3, 5],
+          tailAnchor: { dx: 4.5, dy: 1.5, dir: 1 }
+        },
+        curiousTall: {
+          rows: [
+            " /\\___/\\ ",
+            "(  o o  )",
+            "(  =^=  )",
+            " (     ) ",
+            " (_____) "
+          ],
+          eyeRow: 1,
+          eyeCols: [3, 5],
+          tailAnchor: { dx: 4.5, dy: 2.0, dir: 1 }
+        },
+        tinyKitten: {
+          rows: [
+            " /\\_/\\ ",
+            "( ^w^ )",
+            "(>   <)",
+            " `---' "
+          ],
+          eyeRow: 1,
+          eyeCols: [2, 4],
+          tailAnchor: { dx: -3.5, dy: 1.2, dir: -1 }
+        },
+        sleepingCurl: {
+          rows: [
+            "  /\\_/\\   ",
+            " ( -.- )_ ",
+            "(___(__)~~"
+          ],
+          eyeRow: 1,
+          eyeCols: [3, 5],
+          isSleeper: true
+        }
+      };
+
+      const GARDEN_CATS = [
+        { tpl: "sittingLeft", bqX: -20.5, bqY: 18.5, appearAt: 11.4, hue: 276, sat: 84, light: 84, eyeHue: 50, noseHue: 332, phase: 0.2, petTimer: 0, screenX: 0, screenY: 0 },
+        { tpl: "sittingRight", bqX: 20.5, bqY: 19.0, appearAt: 11.9, hue: 295, sat: 80, light: 82, eyeHue: 175, noseHue: 335, phase: 1.4, petTimer: 0, screenX: 0, screenY: 0 },
+        { tpl: "tinyKitten", bqX: -14.2, bqY: 21.6, appearAt: 12.6, hue: 324, sat: 86, light: 85, eyeHue: 48, noseHue: 342, phase: 2.5, petTimer: 0, screenX: 0, screenY: 0 },
+        { tpl: "tinyKitten", bqX: 14.2, bqY: 21.6, appearAt: 13.0, hue: 256, sat: 84, light: 84, eyeHue: 52, noseHue: 330, phase: 3.7, petTimer: 0, screenX: 0, screenY: 0 },
+        { tpl: "curiousTall", bqX: 31.5, bqY: 19.2, appearAt: 13.5, hue: 282, sat: 88, light: 80, eyeHue: 54, noseHue: 338, phase: 4.4, petTimer: 0, screenX: 0, screenY: 0 },
+        { tpl: "sleepingCurl", bqX: -31.5, bqY: 20.6, appearAt: 14.0, hue: 268, sat: 78, light: 82, eyeHue: 290, noseHue: 335, phase: 5.2, petTimer: 0, screenX: 0, screenY: 0 }
+      ];
+
+      function drawAsciiCat(catDef, centerX, centerY, fontPx, t, alpha, scaleX = 1, scaleY = 1) {
+        const tpl = CAT_TEMPLATES[catDef.tpl];
+        if (!tpl || alpha <= 0.01) return;
+
+        catDef.screenX = centerX;
+        catDef.screenY = centerY;
+
+        const rows = tpl.rows.length;
+        const cols = tpl.rows[0].length;
+        const cx = (cols - 1) / 2;
+        const cy = (rows - 1) / 2;
+
+        const blinkCycle = (t + catDef.phase) % 3.4;
+        const isBlinking = blinkCycle > 3.12;
+        const isHappySquint = catDef.petTimer > 0 || (!tpl.isSleeper && (t + catDef.phase) % 7.2 > 5.4);
+
+        const petBounce = catDef.petTimer > 0 ? Math.sin(catDef.petTimer * Math.PI * 3) * 0.65 : 0;
+        const purrBounce = Math.sin(t * 2.8 + catDef.phase) * 0.14 - Math.abs(petBounce);
+        const earTwitch = Math.sin(t * 5.2 + catDef.phase * 2) > 0.94 ? -0.18 : 0;
+
+        ctx.save();
+        ctx.font = `700 ${fontPx.toFixed(1)}px "Cascadia Code", "Fira Code", "Consolas", monospace`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+
+        for (let r = 0; r < rows; r++) {
+          const line = tpl.rows[r];
+          for (let c = 0; c < line.length; c++) {
+            let ch = line[c];
+            if (ch === " ") continue;
+
+            if (r === tpl.eyeRow && tpl.eyeCols.includes(c)) {
+              if (isHappySquint) ch = "^";
+              else if (isBlinking) ch = "-";
+            }
+
+            const dx = (c - cx) * scaleX;
+            const dy = (r - cy + (r === 0 ? earTwitch : 0) + (r < rows - 1 ? purrBounce : 0)) * scaleY;
+
+            let h = catDef.hue + (r / rows) * 14;
+            let s = catDef.sat;
+            let l = catDef.light;
+
+            if (r === tpl.eyeRow && tpl.eyeCols.includes(c)) {
+              h = catDef.eyeHue;
+              s = 100;
+              l = 80;
+            } else if ((r === 2 && (ch === "^" || ch === "~")) || (r === 3 && ch === "*")) {
+              h = catDef.noseHue;
+              s = 96;
+              l = 76;
+            }
+
+            ctx.shadowColor = hsl(h, 92, 68, alpha * 0.45);
+            ctx.shadowBlur = Math.min(10, fontPx * 0.44);
+            ctx.fillStyle = hsl(h, s, l, alpha);
+            ctx.fillText(ch, centerX + dx, centerY + dy);
+          }
+        }
+
+        if (tpl.tailAnchor) {
+          const wagSpeed = catDef.petTimer > 0 ? 11.0 : 4.2;
+          const wag = Math.sin(t * wagSpeed + catDef.phase);
+          const dir = tpl.tailAnchor.dir;
+          const t1x = centerX + (tpl.tailAnchor.dx + wag * 0.35 * dir) * scaleX;
+          const t1y = centerY + (tpl.tailAnchor.dy - Math.abs(wag) * 0.3) * scaleY;
+          const t2x = centerX + (tpl.tailAnchor.dx + (1.1 + wag * 0.55) * dir) * scaleX;
+          const t2y = centerY + (tpl.tailAnchor.dy - 0.9 - wag * 0.35) * scaleY;
+
+          ctx.fillStyle = hsl(catDef.hue + 10, catDef.sat, catDef.light + 4, alpha);
+          ctx.fillText(dir < 0 ? (wag > 0 ? "(" : "\\") : (wag > 0 ? ")" : "/"), t1x, t1y);
+          ctx.fillText("~", t2x, t2y);
+        }
+
+        if (tpl.isSleeper && catDef.petTimer <= 0) {
+          for (let z = 0; z < 3; z++) {
+            const prog = (t * 0.45 + z * 0.33 + catDef.phase) % 1;
+            const zx = centerX + (1.5 + Math.sin(prog * 5 + z) * 0.8 + prog * 1.4) * scaleX;
+            const zy = centerY + (-1.8 - prog * 3.8) * scaleY;
+            const za = Math.sin(prog * Math.PI) * alpha * 0.88;
+            ctx.font = `700 ${(fontPx * 0.78).toFixed(1)}px "Cascadia Code", "Fira Code", "Consolas", monospace`;
+            ctx.fillStyle = hsl(278, 92, 84, za);
+            ctx.fillText(z % 2 === 0 ? "z" : "Z", zx, zy);
+          }
+        } else {
+          const hProg = (t * 0.38 + catDef.phase * 0.7) % 1;
+          const hx = centerX + Math.sin(hProg * 4 + catDef.phase) * 1.1 * scaleX;
+          const hy = centerY + (-2.8 - hProg * 4.2) * scaleY;
+          const ha = Math.sin(hProg * Math.PI) * alpha * 0.92;
+          ctx.font = `700 ${(fontPx * 0.76).toFixed(1)}px "Cascadia Code", "Fira Code", "Consolas", monospace`;
+          ctx.fillStyle = hsl(328 + Math.sin(t + catDef.phase) * 20, 96, 80, ha);
+          ctx.fillText("<3", hx, hy);
+        }
+
+        ctx.restore();
+      }
+
+      // Animated ASCII Butterflies
+      const BUTTERFLIES = [
+        { cx: -14, cy: -20, rx: 10, ry: 5, speed: 0.75, hue: 288, phase: 0.4, appearAt: 12.8 },
+        { cx: 14, cy: -18, rx: 11, ry: 6, speed: 0.65, hue: 332, phase: 2.8, appearAt: 13.6 }
+      ];
+
+      // =========================================================================
+      // 8. AMBIENT STARDUST, FALLING PETALS & CLICK/CURSOR SPARKLES
+      // =========================================================================
+      const ambientFireflies = Array.from({ length: 90 }, (_, i) => ({
+        x: (Math.sin(i * 73.1) * 0.5) * 1.1,
+        y: (Math.cos(i * 41.7) * 0.5) * 1.1,
+        vx: Math.sin(i * 19.3) * 0.015,
+        vy: -0.013 - (i % 5) * 0.005,
+        ch: ["*", ".", "+", "'", "o", "~"][i % 6],
+        hue: [272, 285, 298, 325, 258, 48][i % 6],
+        phase: i * 1.17,
+        size: 10 + (i % 4) * 2.5
+      }));
+
+      const driftingPetals = Array.from({ length: 30 }, (_, i) => ({
+        x: (i * 0.137) % 1,
+        y: (i * 0.293) % 1,
+        speedY: 0.032 + (i % 5) * 0.009,
+        swayFreq: 1.2 + (i % 4) * 0.4,
+        swayAmp: 0.025 + (i % 3) * 0.01,
+        ch: ["*", ",", "'", "~", "."][i % 5],
+        hue: [278, 292, 315, 332, 265][i % 5],
+        phase: i * 1.7
+      }));
+
+      const cursorSparks = [];
+      function spawnBurst(x, y, count = 10, includeHearts = false) {
+        const glyphs = includeHearts ? ["<3", "*", "+", "~", "o"] : ["*", ".", "+", "~", "o"];
+        for (let i = 0; i < count; i++) {
+          const ang = (i / count) * Math.PI * 2 + Math.random() * 0.4;
+          const spd = 25 + Math.random() * 55;
+          cursorSparks.push({
+            x,
+            y,
+            vx: Math.cos(ang) * spd,
+            vy: Math.sin(ang) * spd - 24,
+            life: 1.0 + Math.random() * 0.35,
+            ch: glyphs[Math.floor(Math.random() * glyphs.length)],
+            hue: [276, 294, 322, 340, 48][Math.floor(Math.random() * 5)]
+          });
+        }
+      }
+
+      window.addEventListener("pointermove", (e) => {
+        if (!started || Math.random() > 0.45) return;
+        cursorSparks.push({
+          x: e.clientX,
+          y: e.clientY,
+          vx: (Math.random() - 0.5) * 38,
+          vy: -20 - Math.random() * 32,
+          life: 1.0,
+          ch: ["*", ".", "+", "~", "<3"][Math.floor(Math.random() * 5)],
+          hue: [275, 292, 315, 335, 48][Math.floor(Math.random() * 5)]
+        });
+      });
+
+      canvas.addEventListener("pointerdown", (e) => {
+        if (!started) return;
+        let hitCat = false;
+        for (const cat of GARDEN_CATS) {
+          if (animTime < cat.appearAt) continue;
+          const dist = Math.hypot(e.clientX - cat.screenX, e.clientY - cat.screenY);
+          if (dist < 46) {
+            cat.petTimer = 1.4;
+            hitCat = true;
+            spawnBurst(cat.screenX, cat.screenY - 12, 12, true);
+            playChime(987.77, 1.1, 0.04, 0);
+            playChime(1318.51, 1.2, 0.035, 0.08);
+          }
+        }
+        if (!hitCat) {
+          spawnBurst(e.clientX, e.clientY, 8, false);
+          playChime(659.25 + Math.random() * 350, 0.9, 0.025, 0);
+        }
+      });
+
+      // =========================================================================
+      // 9. TIMELINE, MODALS & CONTROLS
+      // =========================================================================
+      let started = false;
+      let animTime = 0;
+      let isPlaying = false;
+      let lastTs = performance.now();
+      let notePulsed = false;
+
+      btnOpenGift.addEventListener("click", () => {
+        if (started) return;
+        started = true;
+        isPlaying = true;
+        animTime = 0;
+        firedCues.clear();
+        ensureAudio();
+        introOverlay.classList.add("hidden");
+        hud.classList.remove("hidden");
+      });
+
+      btnPlayPause.addEventListener("click", () => {
+        isPlaying = !isPlaying;
+        btnPlayPause.textContent = isPlaying ? "Pause" : "Play";
+        btnPlayPause.classList.toggle("active", !isPlaying);
+      });
+
+      btnReplay.addEventListener("click", () => {
+        animTime = 0;
+        firedCues.clear();
+        isPlaying = true;
+        notePulsed = false;
+        btnNote.classList.remove("pulse-note");
+        btnPlayPause.textContent = "Pause";
+        btnPlayPause.classList.remove("active");
+      });
+
+      btnNote.addEventListener("click", () => {
+        noteModal.classList.add("open");
+        noteModal.setAttribute("aria-hidden", "false");
+        btnNote.classList.remove("pulse-note");
+        playChime(783.99, 1.5, 0.035, 0);
+        playChime(1046.5, 1.6, 0.035, 0.12);
+      });
+
+      btnCloseNote.addEventListener("click", () => {
+        noteModal.classList.remove("open");
+        noteModal.setAttribute("aria-hidden", "true");
+      });
+
+      noteModal.addEventListener("click", (e) => {
+        if (e.target === noteModal) {
+          noteModal.classList.remove("open");
+          noteModal.setAttribute("aria-hidden", "true");
+        }
+      });
+
+      stagePills.forEach((pill) => {
+        pill.addEventListener("click", () => {
+          const target = parseFloat(pill.dataset.time);
+          if (!Number.isNaN(target)) {
+            animTime = target;
+            firedCues = new Set(
+              MELODY_CUES.map((c, idx) => (c.t < target ? idx : -1)).filter((i) => i >= 0)
+            );
+          }
+        });
+      });
+
+      function updateHud(t) {
+        let activeIdx = 0;
+        if (t >= 15.5) activeIdx = 3;
+        else if (t >= 8.0) activeIdx = 2;
+        else if (t >= 3.8) activeIdx = 1;
+
+        stagePills.forEach((p, idx) => p.classList.toggle("current", idx === activeIdx));
+
+        if (!started) topLabel.textContent = "a surprise for ilhem";
+        else if (t < 3.8) topLabel.textContent = "for ilhem";
+        else if (t < 7.8) topLabel.textContent = "look inside your name";
+        else if (t < 15.8) topLabel.textContent = "blooming in purple for you";
+        else {
+          topLabel.textContent = "for ilhem · tap any kitty";
+          if (!notePulsed) {
+            notePulsed = true;
+            btnNote.classList.add("pulse-note");
+          }
+        }
+      }
+
+      function getCamera(t) {
+        const zoomInT = easeInOutQuart(smoothstep(3.8, 6.8, t));
+        const pullBackT = easeInOutCubic(smoothstep(7.8, 10.8, t));
+
+        const z1 = 1.0;
+        const z2 = 9.4;
+        const z3 = 4.45;
+
+        const zoom =
+          t < 7.8
+            ? z1 * Math.pow(z2 / z1, zoomInT)
+            : z2 * Math.pow(z3 / z2, pullBackT);
+
+        const targetLeafX = ARCH_X;
+        const targetLeafY = ARCH_Y;
+        const targetBouquetX = ARCH_X;
+        const targetBouquetY = ARCH_Y - 1.5;
+
+        let cx = lerp(0, targetLeafX, zoomInT);
+        let cy = lerp(0, targetLeafY, zoomInT);
+
+        if (t >= 7.8) {
+          cx = lerp(targetLeafX, targetBouquetX, pullBackT);
+          cy = lerp(targetLeafY, targetBouquetY, pullBackT);
+        }
+
+        return { cx, cy, zoom };
+      }
+
+      // =========================================================================
+      // 10. CANVAS RESIZE & RENDER LOOP
+      // =========================================================================
+      let viewW = window.innerWidth;
+      let viewH = window.innerHeight;
+      let dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+      function resize() {
+        viewW = window.innerWidth;
+        viewH = window.innerHeight;
+        dpr = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width = Math.floor(viewW * dpr);
+        canvas.height = Math.floor(viewH * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+      window.addEventListener("resize", resize);
+      resize();
+
+      function render(now) {
+        const dt = Math.min(0.05, (now - lastTs) / 1000);
+        lastTs = now;
+        if (started && isPlaying) {
+          animTime += dt;
+          checkAudioCues(animTime);
+        }
+        for (const cat of GARDEN_CATS) {
+          if (cat.petTimer > 0) cat.petTimer = Math.max(0, cat.petTimer - dt);
+        }
+
+        const t = animTime;
+        const bgTime = now / 1000;
+        updateHud(t);
+
+        const fitScale = clamp(Math.min(viewW / 940, viewH / 650), 0.42, 1.48);
+        const cam = getCamera(t);
+        const totalScale = cam.zoom * fitScale;
+
+        const toScreenX = (wx) => viewW * 0.5 + (wx - cam.cx) * totalScale;
+        const toScreenY = (wy) => viewH * 0.5 + (wy - cam.cy) * totalScale;
+
+        ctx.clearRect(0, 0, viewW, viewH);
+
+        // Animated Purple Aurora Nebula Glow
+        const auroraShiftX = Math.sin(bgTime * 0.45) * viewW * 0.08;
+        const auroraShiftY = Math.cos(bgTime * 0.38) * viewH * 0.06;
+        const glowX = toScreenX(ARCH_X) + auroraShiftX * 0.25;
+        const glowY = toScreenY(ARCH_Y - (t > 8 ? 6 : 0)) + auroraShiftY * 0.25;
+        const glowR = Math.max(viewW, viewH) * (t > 8 ? 0.54 : 0.46);
+        const bgGrad = ctx.createRadialGradient(glowX, glowY, 0, glowX, glowY, glowR);
+        if (t < 4.5) {
+          bgGrad.addColorStop(0, "rgba(185, 85, 255, 0.24)");
+          bgGrad.addColorStop(0.45, "rgba(255, 80, 175, 0.11)");
+          bgGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
+        } else if (t < 8.4) {
+          bgGrad.addColorStop(0, "rgba(145, 75, 255, 0.22)");
+          bgGrad.addColorStop(0.4, "rgba(65, 235, 165, 0.12)");
+          bgGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
+        } else {
+          bgGrad.addColorStop(0, "rgba(195, 95, 255, 0.24)");
+          bgGrad.addColorStop(0.48, "rgba(115, 45, 215, 0.13)");
+          bgGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
+        }
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0, 0, viewW, viewH);
+
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        const monoFont = '"Cascadia Code", "Fira Code", "Consolas", monospace';
+
+        // LAYER A: Purple Stardust (always alive even behind gift card!)
+        ctx.save();
+        for (const f of ambientFireflies) {
+          const px = ((f.x + 0.5 + bgTime * f.vx) % 1 + 1) % 1;
+          const py = ((f.y + 0.5 + bgTime * f.vy) % 1 + 1) % 1;
+          const sx = px * viewW;
+          const sy = py * viewH;
+          const twinkle = 0.25 + 0.65 * (0.5 + 0.5 * Math.sin(bgTime * 2.6 + f.phase));
+          ctx.font = `${f.size}px ${monoFont}`;
+          ctx.fillStyle = hsl(f.hue + Math.sin(bgTime + f.phase) * 14, 90, 78, twinkle * 0.72);
+          ctx.fillText(f.ch, sx, sy);
+        }
+        ctx.restore();
+
+        if (!started) {
+          requestAnimationFrame(render);
+          return;
+        }
+
+        // LAYER B: ACT I - CLEAR "ILHEM" WITH SHIMMER SWEEP & 2 NAME KITTIES
+        const nameAlphaGlobal = 1 - smoothstep(4.2, 5.75, t);
+        if (nameAlphaGlobal > 0.01) {
+          const fontSize = Math.max(4, 17.8 * totalScale);
+          ctx.save();
+
+          const auraAppear = smoothstep(0.4, 2.0, t) * nameAlphaGlobal;
+          if (auraAppear > 0.01) {
+            ctx.font = `600 ${(fontSize * 0.8).toFixed(1)}px ${monoFont}`;
+            for (const o of nameOrbiters) {
+              const ang = o.angle + t * o.speed;
+              const sx = toScreenX(Math.cos(ang) * o.rx);
+              const sy = toScreenY(Math.sin(ang) * o.ry);
+              if (sx < -40 || sx > viewW + 40 || sy < -40 || sy > viewH + 40) continue;
+              const pulse = 0.4 + 0.6 * (0.5 + 0.5 * Math.sin(t * 2.8 + o.phase));
+              ctx.fillStyle = hsl(o.hue, 94, 78, auraAppear * pulse * 0.8);
+              ctx.fillText(o.ch, sx, sy);
+            }
+          }
+
+          ctx.font = `700 ${fontSize.toFixed(1)}px ${monoFont}`;
+          const dissolve = smoothstep(4.2, 5.75, t);
+          const sweepPos = clamp((t - 2.05) / 1.15, -0.2, 1.2);
+          for (const g of nameGlyphs) {
+            const revealStart = 0.2 + g.progressX * 1.7;
+            const charReveal = easeOutCubic(smoothstep(revealStart, revealStart + 0.42, t));
+            if (charReveal <= 0.01) continue;
+
+            const enterOffsetY = (1 - charReveal) * 14;
+            const idleFloat = Math.sin(t * 2.5 + g.progressX * 6.0) * 2.2 * (1 - dissolve);
+            const scatterDist = dissolve * (20 + g.seed * 48);
+            const wx = g.wx + Math.cos(g.driftAngle) * scatterDist;
+            const wy = g.wy + enterOffsetY + idleFloat + Math.sin(g.driftAngle) * scatterDist;
+
+            const sx = toScreenX(wx);
+            const sy = toScreenY(wy);
+            if (sx < -fontSize * 2 || sx > viewW + fontSize * 2 || sy < -fontSize * 2 || sy > viewH + fontSize * 2) {
+              continue;
+            }
+
+            const wave = Math.sin(g.progressX * 6.5 - t * 2.6 + g.r * 0.35);
+            const beam = Math.exp(-Math.pow((g.progressX - sweepPos) * 9, 2));
+            let hue = 272 + g.progressX * 58 + wave * 16;
+            let sat = 94;
+            let light = 72 + wave * 9 + beam * 18;
+
+            if (g.isStarDot) {
+              hue = 48 + Math.sin(t * 3.5) * 12;
+              light = 84;
+            }
+
+            const alpha = charReveal * nameAlphaGlobal;
+            ctx.shadowColor = hsl(hue, 98, 70, alpha * (0.65 + beam * 0.35));
+            ctx.shadowBlur = Math.min(24, fontSize * (0.72 + beam * 0.45));
+            ctx.fillStyle = hsl(hue, sat, light, alpha);
+            ctx.fillText(g.ch, sx, sy);
+          }
+
+          const nameCatAlpha = smoothstep(1.3, 2.2, t) * nameAlphaGlobal;
+          if (nameCatAlpha > 0.01) {
+            const catFont = fontSize * 0.85;
+            const catStepX = NAME_CELL_W * totalScale * 0.92;
+            const catStepY = NAME_CELL_H * totalScale * 0.78;
+            drawAsciiCat(
+              { tpl: "sittingLeft", hue: 280, sat: 86, light: 84, eyeHue: 50, noseHue: 332, phase: 0.5, petTimer: 0 },
+              toScreenX(-465),
+              toScreenY(35),
+              catFont,
+              t,
+              nameCatAlpha,
+              catStepX,
+              catStepY
+            );
+            drawAsciiCat(
+              { tpl: "tinyKitten", hue: 315, sat: 88, light: 85, eyeHue: 50, noseHue: 335, phase: 2.1, petTimer: 0 },
+              toScreenX(455),
+              toScreenY(48),
+              catFont,
+              t,
+              nameCatAlpha,
+              catStepX,
+              catStepY
+            );
+          }
+
+          const subAlpha = smoothstep(1.8, 2.7, t) * (1 - smoothstep(3.8, 4.5, t));
+          if (subAlpha > 0.01) {
+            ctx.shadowBlur = 0;
+            ctx.font = `500 ${(13.5 * fitScale).toFixed(1)}px ${monoFont}`;
+            ctx.fillStyle = hsl(288, 88, 86, subAlpha * 0.9);
+            ctx.fillText("·  look closely inside the middle of your name  ·", toScreenX(0), toScreenY(138));
+          }
+
+          ctx.restore();
+        }
+
+        // LAYER B2: ZOOM PULSE RING + VORTEX TUNNEL
+        const pulseRing = smoothstep(3.2, 3.9, t) * (1 - smoothstep(4.2, 4.9, t));
+        if (pulseRing > 0.01) {
+          ctx.save();
+          const rx = toScreenX(ARCH_X);
+          const ry = toScreenY(ARCH_Y);
+          const rad = (1 - (1 - smoothstep(3.2, 4.9, t))) * 85 * totalScale;
+          ctx.strokeStyle = hsl(288, 95, 78, pulseRing * 0.55);
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(rx, ry, rad, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        const vortexAlpha = smoothstep(3.8, 4.6, t) * (1 - smoothstep(5.8, 6.7, t));
+        if (vortexAlpha > 0.01) {
+          ctx.save();
+          const cxScreen = toScreenX(ARCH_X);
+          const cyScreen = toScreenY(ARCH_Y);
+          const maxDim = Math.max(viewW, viewH) * 0.65;
+          for (const vp of zoomVortexParticles) {
+            const rProg = (vp.radius + t * vp.speed) % 1;
+            const ang = vp.angle + t * 2.2 + rProg * 2.4;
+            const dist = rProg * maxDim;
+            const sx = cxScreen + Math.cos(ang) * dist;
+            const sy = cyScreen + Math.sin(ang) * dist;
+            const fade = Math.sin(rProg * Math.PI) * vortexAlpha;
+            ctx.font = `700 ${(10 + rProg * 14).toFixed(1)}px ${monoFont}`;
+            ctx.fillStyle = hsl(vp.hue, 94, 78, fade * 0.8);
+            ctx.fillText(vp.ch, sx, sy);
+          }
+          ctx.restore();
+        }
+
+        // LAYER C: TINY EMERALD-VIOLET BUD INSIDE 'h'
+        const budAppear = smoothstep(1.7, 2.8, t);
+        const budFade = 1 - smoothstep(4.6, 5.8, t);
+        const budAlpha = budAppear * budFade;
+        if (budAlpha > 0.01) {
+          ctx.save();
+          const pulse = 1 + 0.18 * Math.sin(t * 5.2);
+          const budSize = Math.max(8, 16 * totalScale * pulse);
+          const sx = toScreenX(ARCH_X);
+          const sy = toScreenY(ARCH_Y);
+          ctx.font = `700 ${budSize.toFixed(1)}px ${monoFont}`;
+          ctx.shadowColor = "rgba(180, 120, 255, 0.92)";
+          ctx.shadowBlur = Math.min(26, budSize * 0.95);
+          ctx.fillStyle = hsl(148, 92, 68, budAlpha);
+          ctx.fillText("*", sx, sy);
+          ctx.font = `700 ${(budSize * 0.72).toFixed(1)}px ${monoFont}`;
+          ctx.fillStyle = hsl(288, 100, 82, budAlpha * 0.92);
+          ctx.fillText("o", sx, sy - budSize * 0.55);
+          ctx.restore();
+        }
+
+        // LAYER D: BOUQUET SPACE
+        const bqFontSize = 2.15 * BQ_CELL_W * totalScale;
+        const bqToWorldX = (bqX) => ARCH_X + bqX * BQ_CELL_W;
+        const bqToWorldY = (bqY) => ARCH_Y + bqY * BQ_CELL_H;
+        const breezeStrength = smoothstep(6.2, 9.0, t);
+
+        // D1. HERO LEAF
+        const leafProgress = smoothstep(4.7, 6.75, t);
+        if (leafProgress > 0.01) {
+          ctx.save();
+          const leafFont = Math.max(3, bqFontSize * 1.15);
+          ctx.font = `600 ${leafFont.toFixed(1)}px ${monoFont}`;
+          const swayX = Math.sin(t * 1.65) * 0.45 * breezeStrength;
+
+          for (const lc of heroLeafCells) {
+            const cellFade = easeOutCubic(smoothstep(lc.revealAt * 0.72, lc.revealAt * 0.72 + 0.28, leafProgress));
+            if (cellFade <= 0.01) continue;
+
+            const curlOffset = (1 - cellFade) * (lc.dx * -0.35);
+            const wx = bqToWorldX(lc.dx + curlOffset + swayX * (1 - (lc.dy + 6) / 14));
+            const wy = bqToWorldY(lc.dy);
+            const sx = toScreenX(wx);
+            const sy = toScreenY(wy);
+
+            let h, s, l;
+            if (lc.isDew) {
+              const sparkle = 0.5 + 0.5 * Math.sin(t * 4.5);
+              h = lerp(282, 185, sparkle);
+              s = 100;
+              l = 84;
+            } else if (lc.isVein) {
+              h = 102 + Math.sin(t * 2 + lc.dy * 0.3) * 8;
+              s = 92;
+              l = 68;
+            } else {
+              h = lerp(140, 156, lc.distFromCenter);
+              s = lerp(86, 78, lc.distFromCenter);
+              l = lerp(62, 42, lc.distFromCenter);
+            }
+
+            ctx.shadowColor = hsl(h, 90, 58, cellFade * 0.45);
+            ctx.shadowBlur = Math.min(12, leafFont * 0.45);
+            ctx.fillStyle = hsl(h, s, l, cellFade);
+            ctx.fillText(lc.ch, sx, sy);
+          }
+          ctx.restore();
+        }
+
+        // D1.5 MOONLIT PURPLE GARDEN FLOOR
+        const floorFade = smoothstep(8.6, 11.2, t);
+        if (floorFade > 0.01) {
+          ctx.save();
+          const floorFont = Math.max(3, bqFontSize * 0.95);
+          ctx.font = `500 ${floorFont.toFixed(1)}px ${monoFont}`;
+          const floorChars = ["~", ".", "*", "-", "~", "."];
+          for (let gx = -38; gx <= 38; gx += 2) {
+            const sx = toScreenX(bqToWorldX(gx));
+            const sy = toScreenY(bqToWorldY(23.7));
+            const edgeFade = 1 - smoothstep(26, 39, Math.abs(gx));
+            const twinkle = 0.55 + 0.45 * Math.sin(t * 2.0 + gx * 0.4);
+            ctx.fillStyle = hsl(276 + Math.sin(gx * 0.2) * 18, 78, 72, floorFade * edgeFade * twinkle * 0.58);
+            ctx.fillText(floorChars[Math.abs(gx) % floorChars.length], sx, sy);
+          }
+          ctx.restore();
+        }
+
+        // D2. IRIDESCENT PURPLE-CRYSTAL VASE WITH SILK BOW
+        const vaseProgress = smoothstep(8.2, 10.6, t);
+        if (vaseProgress > 0.01) {
+          ctx.save();
+          const vaseFont = Math.max(3, bqFontSize * 1.12);
+          ctx.font = `600 ${vaseFont.toFixed(1)}px ${monoFont}`;
+
+          for (const vc of vaseCells) {
+            const rowOrder = 1 - vc.rowNorm;
+            const cellFade = easeOutCubic(smoothstep(rowOrder * 0.72, rowOrder * 0.72 + 0.28, vaseProgress));
+            if (cellFade <= 0.01) continue;
+
+            let ch = vc.ch;
+            let h = 272;
+            let s = 86;
+            let l = 68;
+
+            if (vc.isWater) {
+              const wave = Math.sin(t * 3.4 + vc.bqX * 0.7 + vc.bqY);
+              ch = wave > 0.25 ? "~" : wave < -0.5 ? "-" : "~";
+              h = 258 + wave * 18;
+              s = 92;
+              l = 70 + wave * 8;
+            } else if (vc.isRibbon) {
+              h = 335 + Math.sin(t * 2 + vc.bqX * 0.3) * 12; // glowing rose-gold ribbon bow!
+              s = 94;
+              l = 78;
+            } else if (vc.isRim) {
+              h = 295 + vc.colNorm * 45;
+              s = 88;
+              l = 80;
+            } else if (vc.isInnerStem) {
+              h = 148;
+              s = 78;
+              l = 48;
+            } else if (vc.isHighlight) {
+              h = 285;
+              s = 96;
+              l = 84;
+            } else if (vc.isShimmer) {
+              const shimmer = 0.5 + 0.5 * Math.sin(t * 2.8 + vc.bqX * 0.4 + vc.bqY * 0.5);
+              h = lerp(266, 305, vc.colNorm);
+              s = 84;
+              l = 56 + shimmer * 20;
+            } else {
+              h = lerp(265, 295, vc.colNorm);
+              s = 86;
+              l = 66;
+            }
+
+            const sx = toScreenX(bqToWorldX(vc.bqX));
+            const sy = toScreenY(bqToWorldY(vc.bqY));
+            ctx.shadowColor = hsl(h, 92, 66, cellFade * 0.42);
+            ctx.shadowBlur = Math.min(11, vaseFont * 0.42);
+            ctx.fillStyle = hsl(h, s, l, cellFade);
+            ctx.fillText(ch, sx, sy);
+          }
+          ctx.restore();
+        }
+
+        // D3. STEMS, FOLIAGE & 18 BLOSSOMS
+        if (t >= 8.5) {
+          ctx.save();
+          const bqFont = Math.max(3, bqFontSize * 1.12);
+          ctx.font = `600 ${bqFont.toFixed(1)}px ${monoFont}`;
+
+          for (const fl of FLOWERS) {
+            const stemProg = easeOutCubic(smoothstep(fl.stemStart, fl.stemStart + fl.stemDur, t));
+            if (stemProg <= 0.01) continue;
+
+            const sway = Math.sin(t * 1.65 + fl.swayPhase) * fl.swayAmp * breezeStrength;
+
+            for (const sc of fl.stemCells) {
+              if (sc.t > stemProg) continue;
+              const fade = smoothstep(sc.t, sc.t + 0.08, stemProg);
+              const tipSway = sway * Math.pow(sc.t, 1.4);
+              const sx = toScreenX(bqToWorldX(sc.gx + tipSway));
+              const sy = toScreenY(bqToWorldY(sc.gy));
+              ctx.shadowBlur = 0;
+              ctx.fillStyle = hsl(sc.hue, 80, sc.light, fade);
+              ctx.fillText(sc.ch, sx, sy);
+            }
+
+            for (const sl of fl.leafCells) {
+              if (stemProg < sl.t + 0.1) continue;
+              const lFade = easeOutBack(clamp((stemProg - (sl.t + 0.1)) / 0.25));
+              const tipSway = sway * Math.pow(sl.t, 1.4);
+              const sx = toScreenX(bqToWorldX(sl.gx + tipSway));
+              const sy = toScreenY(bqToWorldY(sl.gy));
+              ctx.fillStyle = hsl(sl.hue, 85, sl.light, clamp(lFade));
+              ctx.fillText(sl.ch, sx, sy);
+            }
+          }
+
+          for (const fl of FLOWERS) {
+            const rawBloom = clamp((t - fl.bloomStart) / fl.bloomDur);
+            if (rawBloom <= 0.005) continue;
+
+            const sway = Math.sin(t * 1.65 + fl.swayPhase) * fl.swayAmp * breezeStrength;
+            const bobY = Math.cos(t * 1.9 + fl.swayPhase) * 0.24 * breezeStrength;
+            const openEase = easeOutBack(rawBloom);
+            const petalScale = lerp(0.28, 1.0, clamp(openEase, 0, 1.08));
+
+            const centerX = fl.tx + sway;
+            const centerY = fl.ty + bobY;
+
+            const haloX = toScreenX(bqToWorldX(centerX));
+            const haloY = toScreenY(bqToWorldY(centerY));
+            const haloR = bqFont * (fl.type === "royalPeony" ? 5.2 : 3.4);
+            const firstCol = fl.blossomCells[0];
+            if (firstCol) {
+              const halo = ctx.createRadialGradient(haloX, haloY, 0, haloX, haloY, haloR);
+              halo.addColorStop(0, hsl(firstCol.h, 96, 68, rawBloom * 0.22));
+              halo.addColorStop(1, "rgba(0,0,0,0)");
+              ctx.fillStyle = halo;
+              ctx.fillRect(haloX - haloR, haloY - haloR, haloR * 2, haloR * 2);
+            }
+
+            ctx.font = `700 ${bqFont.toFixed(1)}px ${monoFont}`;
+            for (const bc of fl.blossomCells) {
+              const cellReveal = clamp((rawBloom - bc.dist * 0.45) / 0.55);
+              if (cellReveal <= 0.01) continue;
+
+              const bx = centerX + bc.dx * petalScale;
+              const by = centerY + bc.dy * petalScale;
+              const sx = toScreenX(bqToWorldX(bx));
+              const sy = toScreenY(bqToWorldY(by));
+
+              const shimmer = Math.sin(t * 2.6 + fl.swayPhase + bc.dx * 0.5) * 6;
+              ctx.shadowColor = hsl(bc.h, bc.s, bc.l, cellReveal * 0.56);
+              ctx.shadowBlur = Math.min(13, bqFont * 0.52);
+              ctx.fillStyle = hsl(bc.h, bc.s, bc.l + shimmer, easeOutCubic(cellReveal));
+              ctx.fillText(bc.ch, sx, sy);
+            }
+          }
+          ctx.restore();
+        }
+
+        // D4. 6 ANIMATED INTERACTIVE CATS AROUND THE VASE
+        if (t >= 11.2) {
+          const catFont = Math.max(3, bqFontSize * 1.1);
+          const stepX = BQ_CELL_W * totalScale;
+          const stepY = BQ_CELL_H * totalScale;
+          for (const cat of GARDEN_CATS) {
+            const catProg = smoothstep(cat.appearAt, cat.appearAt + 0.9, t);
+            if (catProg <= 0.01) continue;
+            const popY = (1 - easeOutBack(catProg)) * 3.5;
+            drawAsciiCat(
+              cat,
+              toScreenX(bqToWorldX(cat.bqX)),
+              toScreenY(bqToWorldY(cat.bqY + popY)),
+              catFont,
+              t,
+              catProg,
+              stepX,
+              stepY
+            );
+          }
+        }
+
+        // D4.5 FLUTTERING ASCII BUTTERFLIES OVER THE BOUQUET
+        ctx.save();
+        for (const bf of BUTTERFLIES) {
+          const bfAlpha = smoothstep(bf.appearAt, bf.appearAt + 1.2, t);
+          if (bfAlpha <= 0.01) continue;
+          const bx = bf.cx + Math.cos(t * bf.speed + bf.phase) * bf.rx;
+          const by = bf.cy + Math.sin(t * bf.speed * 1.7 + bf.phase) * bf.ry;
+          const flap = Math.sin(t * 14 + bf.phase) > 0;
+          const wingGlyph = flap ? "~*~" : "\\*/";
+          const bfFont = Math.max(8, bqFontSize * 1.15);
+          ctx.font = `700 ${bfFont.toFixed(1)}px ${monoFont}`;
+          ctx.shadowColor = hsl(bf.hue, 98, 72, bfAlpha * 0.7);
+          ctx.shadowBlur = 12;
+          ctx.fillStyle = hsl(bf.hue, 96, 82, bfAlpha);
+          ctx.fillText(wingGlyph, toScreenX(bqToWorldX(bx)), toScreenY(bqToWorldY(by)));
+        }
+        ctx.restore();
+
+        // D5. GENTLE FALLING PURPLE PETALS
+        const petalLayerAlpha = smoothstep(11.0, 14.0, t);
+        if (petalLayerAlpha > 0.01) {
+          ctx.save();
+          ctx.font = `600 13px ${monoFont}`;
+          for (const p of driftingPetals) {
+            const py = (p.y + t * p.speedY) % 1;
+            const px = ((p.x + Math.sin(t * p.swayFreq + p.phase) * p.swayAmp) % 1 + 1) % 1;
+            const alpha = Math.sin(py * Math.PI) * petalLayerAlpha * 0.7;
+            ctx.fillStyle = hsl(p.hue, 92, 78, alpha);
+            ctx.fillText(p.ch, px * viewW, py * viewH);
+          }
+          ctx.restore();
+        }
+
+        // LAYER E: FINALE DEDICATION UNDER THE VASE
+        const finaleAlpha = smoothstep(15.2, 16.8, t);
+        if (finaleAlpha > 0.01) {
+          ctx.save();
+          const msgY = toScreenY(bqToWorldY(26.6));
+          const msgX = toScreenX(bqToWorldX(0));
+          const titleSize = Math.max(13, 18.5 * fitScale);
+          const subSize = Math.max(10, 12.5 * fitScale);
+
+          ctx.textAlign = "center";
+          ctx.shadowColor = "rgba(215, 115, 255, 0.75)";
+          ctx.shadowBlur = 16;
+          ctx.font = `700 ${titleSize.toFixed(1)}px ${monoFont}`;
+          ctx.fillStyle = hsl(288 + Math.sin(t * 1.6) * 18, 94, 83, finaleAlpha);
+          ctx.fillText(GIFT_CONFIG.finaleTitle, msgX, msgY);
+
+          ctx.shadowBlur = 0;
+          ctx.font = `400 ${subSize.toFixed(1)}px ${monoFont}`;
+          ctx.fillStyle = hsl(295, 78, 89, finaleAlpha * 0.9);
+          ctx.fillText(GIFT_CONFIG.finaleSubtitle, msgX, msgY + titleSize * 1.45);
+          ctx.restore();
+        }
+
+        // LAYER F: INTERACTIVE SPARKLES & HEART BURSTS
+        if (cursorSparks.length > 0) {
+          ctx.save();
+          ctx.font = `700 13px ${monoFont}`;
+          for (let i = cursorSparks.length - 1; i >= 0; i--) {
+            const s = cursorSparks[i];
+            s.x += s.vx * dt;
+            s.y += s.vy * dt;
+            s.vy += 22 * dt;
+            s.life -= dt * 1.05;
+            if (s.life <= 0) {
+              cursorSparks.splice(i, 1);
+              continue;
+            }
+            ctx.fillStyle = hsl(s.hue, 96, 82, clamp(s.life) * 0.92);
+            ctx.fillText(s.ch, s.x, s.y);
+          }
+          ctx.restore();
+        }
+
+        requestAnimationFrame(render);
+      }
+
+      requestAnimationFrame(render);
+    })();
+  </script>
+</body>
+</html>
